@@ -363,7 +363,9 @@ mod tests {
 
     #[test]
     fn generate_valid_random_codice_fiscale() {
-        let codice_fiscale = CodiceFiscale::generate_random();
-        assert!(CodiceFiscale::verify(&codice_fiscale.get()).is_ok())
+        for _i in 0..10_000 {
+            let codice_fiscale = CodiceFiscale::generate_random();
+            assert!(CodiceFiscale::verify(&codice_fiscale.get()).is_ok())
+        }
     }
 }

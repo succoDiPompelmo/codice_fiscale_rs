@@ -2,9 +2,9 @@ use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
 use codice_fiscale_rs::CodiceFiscale;
 
-fn from_elem(c: &mut Criterion) {
+fn random_inputs(c: &mut Criterion) {
     let mut random_inputs = vec![];
-    for _i in 0..5 {
+    for _i in 0..3 {
         random_inputs.push(CodiceFiscale::generate_random())
     }
 
@@ -21,5 +21,17 @@ fn from_elem(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, from_elem);
+fn single_input(c: &mut Criterion) {
+    let codice_fiscale = "cTMTBT74E05B506W";
+
+    c.bench_with_input(
+        BenchmarkId::new("verify", codice_fiscale),
+        &codice_fiscale,
+        |b, input| {
+            b.iter(|| CodiceFiscale::verify(input));
+        },
+    );
+}
+
+criterion_group!(benches, random_inputs, single_input);
 criterion_main!(benches);

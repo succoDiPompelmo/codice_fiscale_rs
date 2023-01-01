@@ -1,3 +1,4 @@
+use std::fmt;
 use std::str::FromStr;
 
 use rand::distributions::{Distribution, Uniform};
@@ -22,6 +23,12 @@ pub struct PersonData {
 #[derive(Debug, PartialEq, Eq)]
 pub struct CodiceFiscale {
     codice_fiscale: String,
+}
+
+impl fmt::Display for CodiceFiscale {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.get())
+    }
 }
 
 type Result<T> = std::result::Result<T, CodiceFiscaleError>;
@@ -205,10 +212,7 @@ fn verify_control_code(codice_fiscale: &str) -> Result<()> {
         (expected, Some(value)) => {
             Err(CodiceFiscaleError::InvalidControlCharacter(value, expected))
         }
-        (expected, None) => Err(CodiceFiscaleError::InvalidControlCharacter(
-            ' ',
-            expected,
-        )),
+        (expected, None) => Err(CodiceFiscaleError::InvalidControlCharacter(' ', expected)),
     }
 }
 
@@ -287,10 +291,7 @@ mod tests {
     fn invalid_codice_fiscale_control_code() {
         assert_eq!(
             CodiceFiscale::verify("CTmTBT74E05B506Y"),
-            Err(CodiceFiscaleError::InvalidControlCharacter(
-                'Y',
-                'W'
-            ))
+            Err(CodiceFiscaleError::InvalidControlCharacter('Y', 'W'))
         )
     }
 

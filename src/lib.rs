@@ -1,11 +1,14 @@
 use std::str::FromStr;
 
+use rand::distributions::{Distribution, Uniform};
 use thiserror::Error;
 
 const ALPHABET: &[char] = &[
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
     'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 ];
+
+const MONTH_CODES: &[char] = &['A', 'B', 'C', 'D', 'E', 'H', 'L', 'M', 'P', 'R', 'S', 'T'];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PersonData {
@@ -44,7 +47,7 @@ pub enum CodiceFiscaleError {
     #[error("The fiscal code birth place part should be a valid belfiore code instead is `{0}`")]
     InvalidBirthPlace(String),
     #[error("The fiscal code control character is invalid, found `{0}` expected `{1}`")]
-    InvalidControlCharacter(String, String),
+    InvalidControlCharacter(char, char),
     #[error("The fiscal code shoud not contains any non alphanumeric character, invalid character at position `{0}`")]
     NonAlphanumericCharacter(usize),
 }
@@ -78,6 +81,51 @@ impl CodiceFiscale {
             codice_fiscale: codice_fiscale.to_string(),
         })
     }
+
+    pub fn generate_random() -> CodiceFiscale {
+        let mut codice_fiscale = vec![];
+
+        let mut rng = rand::thread_rng();
+        let alphabet_index = Uniform::from(1..26);
+        let digit = Uniform::from(0..10);
+        let month_codes_index = Uniform::from(0..12);
+        let day_first_digit = Uniform::from(1..2);
+        let day_second_digit = Uniform::from(0..10);
+        let gender = Uniform::from(0..2);
+
+        for _i in 0..6 {
+            codice_fiscale.push(ALPHABET[alphabet_index.sample(&mut rng)])
+        }
+
+        for _i in 0..2 {
+            codice_fiscale.push(char::from_digit(digit.sample(&mut rng), 10).unwrap());
+        }
+
+        codice_fiscale.push(MONTH_CODES[month_codes_index.sample(&mut rng)]);
+        codice_fiscale.push(
+            char::from_digit(
+                day_first_digit.sample(&mut rng) + 4 * gender.sample(&mut rng),
+                10,
+            )
+            .unwrap(),
+        );
+        codice_fiscale.push(char::from_digit(day_second_digit.sample(&mut rng), 10).unwrap());
+        codice_fiscale.push(ALPHABET[alphabet_index.sample(&mut rng)]);
+        for _i in 0..3 {
+            codice_fiscale.push(char::from_digit(digit.sample(&mut rng), 10).unwrap());
+        }
+
+        let value: String = codice_fiscale.iter().collect();
+        let control_code = compute_control_code(&value);
+
+        codice_fiscale.push(control_code);
+        let codice_fiscale: String = codice_fiscale.iter().collect();
+        CodiceFiscale { codice_fiscale }
+    }
+
+    pub fn get(&self) -> String {
+        self.codice_fiscale.to_string()
+    }
 }
 
 fn verify_surname_part(surname_part: &str) -> Result<()> {
@@ -110,12 +158,12 @@ fn verify_birth_year_part(birth_year_part: &str) -> Result<()> {
 }
 
 fn verify_birth_month_part(birth_month_part: &str) -> Result<()> {
-    let month_codes: &[u8] = &[
-        b'A', b'B', b'C', b'D', b'E', b'H', b'L', b'M', b'P', b'R', b'S', b'T',
-    ];
-    match birth_month_part.as_bytes() {
-        &[c] if month_codes.contains(&c) => Ok(()),
-        _ => Err(CodiceFiscaleError::InvalidBirthMonth(
+    match birth_month_part
+        .chars()
+        .all(|char| MONTH_CODES.contains(&char))
+    {
+        true => Ok(()),
+        false => Err(CodiceFiscaleError::InvalidBirthMonth(
             birth_month_part.to_string(),
         )),
     }
@@ -150,7 +198,7 @@ fn verify_birth_place_part(birth_place_part: &str) -> Result<()> {
 
 fn verify_control_code(codice_fiscale: &str) -> Result<()> {
     let expected_control_code = compute_control_code(codice_fiscale);
-    let control_code = codice_fiscale.chars().last().map(|value| value.to_string());
+    let control_code = codice_fiscale.chars().last();
 
     match (expected_control_code, control_code) {
         (expected, Some(value)) if expected == value => Ok(()),
@@ -158,13 +206,13 @@ fn verify_control_code(codice_fiscale: &str) -> Result<()> {
             Err(CodiceFiscaleError::InvalidControlCharacter(value, expected))
         }
         (expected, None) => Err(CodiceFiscaleError::InvalidControlCharacter(
-            "".to_string(),
+            ' ',
             expected,
         )),
     }
 }
 
-fn compute_control_code(codice_fiscale: &str) -> String {
+fn compute_control_code(codice_fiscale: &str) -> char {
     let partial_code: Vec<char> = codice_fiscale.to_uppercase().chars().collect();
     let mut control_code = 0;
 
@@ -175,7 +223,7 @@ fn compute_control_code(codice_fiscale: &str) -> String {
     }
 
     let index_alphabet: usize = (&control_code % 26).try_into().unwrap();
-    ALPHABET[index_alphabet].to_string()
+    ALPHABET[index_alphabet]
 }
 
 fn get_conversion_table_value(character: &char, even: bool) -> Option<i32> {
@@ -240,8 +288,8 @@ mod tests {
         assert_eq!(
             CodiceFiscale::verify("CTmTBT74E05B506Y"),
             Err(CodiceFiscaleError::InvalidControlCharacter(
-                "Y".to_string(),
-                "W".to_string()
+                'Y',
+                'W'
             ))
         )
     }
@@ -310,5 +358,11 @@ mod tests {
             CodiceFiscale::verify("CTMTBT74E31B5F6W"),
             Err(CodiceFiscaleError::InvalidBirthPlace("B5F6".to_string()))
         )
+    }
+
+    #[test]
+    fn generate_valid_random_codice_fiscale() {
+        let codice_fiscale = CodiceFiscale::generate_random();
+        assert!(CodiceFiscale::verify(&codice_fiscale.get()).is_ok())
     }
 }

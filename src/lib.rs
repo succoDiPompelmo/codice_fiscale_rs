@@ -1,6 +1,7 @@
-use std::fmt;
 use std::str::FromStr;
+use std::{fmt, vec};
 
+use chrono::prelude::*;
 use rand::distributions::{Distribution, Uniform};
 use thiserror::Error;
 
@@ -11,13 +12,21 @@ const ALPHABET: &[char] = &[
 
 const MONTH_CODES: &[char] = &['A', 'B', 'C', 'D', 'E', 'H', 'L', 'M', 'P', 'R', 'S', 'T'];
 
+const VOWELS: &[char] = &['A', 'E', 'I', 'O', 'U'];
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PersonData {
     pub name: String,
     pub surname: String,
-    pub birthdate: String,
-    pub gender: String,
+    pub birthdate: NaiveDate,
+    pub gender: Gender,
     pub place_of_birth: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Gender {
+    M,
+    F,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -89,6 +98,28 @@ impl CodiceFiscale {
         })
     }
 
+    pub fn generate(person_data: &PersonData) -> CodiceFiscale {
+        let surname_part = generate_name_or_surname_part(person_data.surname.to_owned());
+        let name_part = generate_name_or_surname_part(person_data.name.to_owned());
+        let birth_day_and_gender_parts =
+            generate_birth_day_and_gender_parts(person_data.birthdate, person_data.gender);
+
+        let mut codice_fiscale: String = [
+            surname_part,
+            name_part,
+            birth_day_and_gender_parts,
+            person_data.place_of_birth.chars().collect(),
+        ]
+        .concat()
+        .iter()
+        .collect();
+
+        let control_code = compute_control_code(&codice_fiscale);
+        codice_fiscale.push(control_code);
+
+        CodiceFiscale { codice_fiscale }
+    }
+
     pub fn generate_random() -> CodiceFiscale {
         let mut codice_fiscale = vec![];
 
@@ -133,6 +164,53 @@ impl CodiceFiscale {
     pub fn get(&self) -> String {
         self.codice_fiscale.to_string()
     }
+}
+
+fn generate_name_or_surname_part(name_or_surname: String) -> Vec<char> {
+    let mut result = vec![];
+
+    let mut name_consonants: Vec<char> = name_or_surname
+        .chars()
+        .filter(|char| !VOWELS.contains(char))
+        .collect();
+    result.append(&mut name_consonants);
+
+    if result.len() >= 3 {
+        return result[0..3].to_vec();
+    }
+
+    let mut name_vowels: Vec<char> = name_or_surname
+        .chars()
+        .filter(|char| VOWELS.contains(char))
+        .collect();
+    result.append(&mut name_vowels);
+
+    if result.len() >= 3 {
+        return result[0..3].to_vec();
+    }
+
+    while result.len() < 3 {
+        result.push('X');
+    }
+
+    result
+}
+
+fn generate_birth_day_and_gender_parts(birthday: NaiveDate, gender: Gender) -> Vec<char> {
+    let year_part: Vec<char> = birthday.year().to_string().chars().collect();
+    let month_part = MONTH_CODES[(birthday.month() as usize) - 1];
+
+    let mut day: Vec<char> = if gender == Gender::F {
+        (birthday.day() + 40).to_string().chars().collect()
+    } else {
+        birthday.day().to_string().chars().collect()
+    };
+
+    if day.len() < 2 {
+        day.insert(0, '0');
+    }
+
+    [year_part[2..].to_vec(), vec![month_part], day].concat()
 }
 
 fn verify_surname_part(surname_part: &str) -> Result<()> {
@@ -367,5 +445,20 @@ mod tests {
             let codice_fiscale = CodiceFiscale::generate_random();
             assert!(CodiceFiscale::verify(&codice_fiscale.get()).is_ok())
         }
+    }
+
+    #[test]
+    fn generate_valid_codice_fiscale_from_person_data() {
+        let person_data = PersonData {
+            name: "PI".to_string(),
+            surname: "SUCCHIO".to_string(),
+            birthdate: NaiveDate::from_ymd_opt(1998, 7, 8).unwrap(),
+            gender: Gender::F,
+            place_of_birth: "M256".to_string(),
+        };
+        let codice_fiscale = CodiceFiscale::generate(&person_data);
+
+        assert_eq!(codice_fiscale.get(), "SCCPIX98L48M256N");
+        assert!(CodiceFiscale::verify(&codice_fiscale.get()).is_ok());
     }
 }

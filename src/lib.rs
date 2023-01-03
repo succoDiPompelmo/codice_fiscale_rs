@@ -84,13 +84,16 @@ impl CodiceFiscale {
             ));
         }
 
-        verify_surname_part(&codice_fiscale[0..3])?;
-        verify_name_part(&codice_fiscale[3..6])?;
-        verify_birth_year_part(&codice_fiscale[6..8])?;
-        verify_birth_month_part(&codice_fiscale[8..9])?;
-        verify_birth_day_and_gender_part(&codice_fiscale[9..11])?;
-        verify_birth_place_part(&codice_fiscale[11..15])?;
+        let purified_codice_fiscale = replace_omocodes(codice_fiscale);
 
+        verify_surname_part(&purified_codice_fiscale[0..3])?;
+        verify_name_part(&purified_codice_fiscale[3..6])?;
+        verify_birth_year_part(&purified_codice_fiscale[6..8])?;
+        verify_birth_month_part(&purified_codice_fiscale[8..9])?;
+        verify_birth_day_and_gender_part(&purified_codice_fiscale[9..11])?;
+        verify_birth_place_part(&purified_codice_fiscale[11..15])?;
+
+        // DOC
         verify_control_code(codice_fiscale)?;
 
         Ok(CodiceFiscale {
@@ -163,6 +166,40 @@ impl CodiceFiscale {
 
     pub fn get(&self) -> String {
         self.codice_fiscale.to_string()
+    }
+}
+
+fn replace_omocodes(codice_fiscale: &str) -> String {
+    let mut purified_codice_fiscale: Vec<char> = codice_fiscale.chars().collect();
+    let omoceds_letter_indices = [14, 13, 12, 10, 9, 7, 6];
+    for index in omoceds_letter_indices {
+        if purified_codice_fiscale[index].is_ascii_alphabetic() {
+            if let Some(mapped_letter) = map_omocodes(purified_codice_fiscale[index]) {
+                purified_codice_fiscale[index] = mapped_letter;
+            } else {
+                return codice_fiscale.to_string();
+            }
+        } else {
+            return purified_codice_fiscale.iter().collect();
+        }
+    }
+
+    return purified_codice_fiscale.iter().collect();
+}
+
+fn map_omocodes(letter: char) -> Option<char> {
+    match letter {
+        'L' | 'l' => Some('0'),
+        'M' | 'm' => Some('1'),
+        'N' | 'n' => Some('2'),
+        'P' | 'p' => Some('3'),
+        'Q' | 'q' => Some('4'),
+        'R' | 'r' => Some('5'),
+        'S' | 's' => Some('6'),
+        'T' | 't' => Some('7'),
+        'U' | 'u' => Some('8'),
+        'V' | 'v' => Some('9'),
+        _ => None,
     }
 }
 
@@ -355,6 +392,16 @@ mod tests {
     #[test]
     fn valid_codice_fiscale() {
         assert!(CodiceFiscale::verify("cTMTBT74E05B506W").is_ok())
+    }
+
+    #[test]
+    fn valid_codice_fiscale_omocodo() {
+        assert_eq!(
+            CodiceFiscale::verify("BRNPRZ72D52F83VC"),
+            Ok(CodiceFiscale {
+                codice_fiscale: "BRNPRZ72D52F83VC".to_string()
+            })
+        )
     }
 
     #[test]

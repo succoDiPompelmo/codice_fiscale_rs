@@ -171,17 +171,20 @@ impl CodiceFiscale {
 
 fn replace_omocodes(codice_fiscale: &str) -> String {
     let mut purified_codice_fiscale: Vec<char> = codice_fiscale.chars().collect();
-    let omoceds_letter_indices = [14, 13, 12, 10, 9, 7, 6];
-    for index in omoceds_letter_indices {
-        if purified_codice_fiscale[index].is_ascii_alphabetic() {
-            if let Some(mapped_letter) = map_omocodes(purified_codice_fiscale[index]) {
-                purified_codice_fiscale[index] = mapped_letter;
-            } else {
-                return codice_fiscale.to_string();
-            }
-        } else {
-            return purified_codice_fiscale.iter().collect();
+    let omocodes_letter_indices = [14, 13, 12, 10, 9, 7, 6];
+    for index in omocodes_letter_indices {
+        let current_letter = purified_codice_fiscale[index];
+        if !current_letter.is_ascii_alphabetic() {
+            break;
         }
+
+        let map_current_letter = map_omocodes(current_letter);
+        if map_current_letter.is_none() {
+            return codice_fiscale.to_string();
+        }
+
+        purified_codice_fiscale[index] =
+            map_current_letter.expect("mapping shoud be always populated here");
     }
 
     return purified_codice_fiscale.iter().collect();

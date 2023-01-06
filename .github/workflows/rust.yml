@@ -11,7 +11,7 @@ env:
 
 jobs:
 
-  test_phaser:
+  test_codice_fiscale_rs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -30,17 +30,14 @@ jobs:
 
       - name: Lint
         run: |
-          cd codice_fiscale_rs
           cargo fmt -- --check
           cargo clippy -- -D warnings          
 
       - name: Test
         run: |
-          cd codice_fiscale_rs
           cargo check
           cargo test --all          
 
       - name: Build
         run: |
-          cd codice_fiscale_rs
           cargo build --release 

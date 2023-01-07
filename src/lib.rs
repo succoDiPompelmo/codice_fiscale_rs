@@ -94,7 +94,7 @@ impl CodiceFiscale {
     ///     "PLUTO".to_string(),
     ///     Utc::now().date_naive(),
     ///     Gender::M,
-    ///     "B544".to_string());
+    ///     "B544".to_string()).unwrap();
     ///
     /// let codice_fiscale_outcome = CodiceFiscale::generate(&person_data);
     /// assert_eq!(codice_fiscale_outcome.get(), "PLTPPP23A07B544K".to_string());
@@ -126,5 +126,37 @@ impl CodiceFiscale {
 
     pub fn omocodes(&self) -> Vec<String> {
         self.omocodes.to_vec()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+
+    use crate::person_data::Gender;
+
+    use super::*;
+
+    #[test]
+    fn test_verify() {
+        let codice_fiscale = CodiceFiscale::verify("PLTPPP23A47T567Q");
+        assert!(codice_fiscale.is_ok());
+    }
+
+    #[test]
+    fn test_generate() {
+        let naive_now = Utc::now().date_naive();
+        let person_data = PersonData::new(
+            "PIPPO".to_string(),
+            "PLUTO".to_string(),
+            naive_now,
+            Gender::F,
+            "T567".to_string(),
+        )
+        .unwrap();
+
+        let codice_fiscale = CodiceFiscale::generate(&person_data);
+
+        assert_eq!(codice_fiscale.get(), "PLTPPP23A47T567Q".to_string());
     }
 }

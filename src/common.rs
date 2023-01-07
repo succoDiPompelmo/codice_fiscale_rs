@@ -20,14 +20,18 @@ const MONTH_CODES: &[char] = &[
     'T', // December
 ];
 
-pub fn vowels() -> Vec<char> {
-    VOWELS.to_vec()
+pub fn is_vowel(letter: &char) -> bool {
+    VOWELS.contains(letter)
 }
 
-pub fn alphabet() -> Vec<char> {
-    ALPHABET.to_vec()
+pub fn to_alphabet(index: usize) -> char {
+    ALPHABET[index]
 }
 
-pub fn month_codes() -> Vec<char> {
-    MONTH_CODES.to_vec()
+pub fn to_month_codes(index: usize) -> char {
+    MONTH_CODES[index]
+}
+
+pub fn is_month_code(letter: &char) -> bool {
+    MONTH_CODES.contains(letter)
 }

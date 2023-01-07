@@ -3,7 +3,7 @@ use std::{fmt, str::FromStr};
 use thiserror::Error;
 
 use crate::{
-    common::month_codes, control_code::ControlCode, errors::VerifierError, omocodes::Omocodes,
+    common::is_month_code, control_code::ControlCode, errors::VerifierError, omocodes::Omocodes,
 };
 
 type Result<T> = std::result::Result<T, VerifierError>;
@@ -27,7 +27,7 @@ impl Verifier {
             return Err(VerifierError::InvalidLength(codice_fiscale.len()));
         }
 
-        verify_characters(codice_fiscale)?;
+        verify_ascii_alphanumeric(codice_fiscale)?;
 
         let purified_codice_fiscale = Omocodes::replace_omocodes_characters(codice_fiscale);
 
@@ -52,8 +52,8 @@ impl VerifierOutcome {
     }
 }
 
-fn verify_characters(codice_fiscale: &str) -> Result<()> {
-    if let Some(invalid_character_position) = codice_fiscale
+pub fn verify_ascii_alphanumeric(value: &str) -> Result<()> {
+    if let Some(invalid_character_position) = value
         .as_bytes()
         .iter()
         .position(|c| !c.is_ascii_alphanumeric())
@@ -96,10 +96,7 @@ fn verify_birth_year_part(birth_year_part: &str) -> Result<()> {
 }
 
 fn verify_birth_month_part(birth_month_part: &str) -> Result<()> {
-    match birth_month_part
-        .chars()
-        .all(|char| month_codes().contains(&char))
-    {
+    match birth_month_part.chars().all(|char| is_month_code(&char)) {
         true => Ok(()),
         false => Err(VerifierError::InvalidBirthMonth(
             birth_month_part.to_string(),
@@ -118,7 +115,7 @@ fn verify_birth_day_and_gender_part(birth_day_and_gender_part: &str) -> Result<(
     Err(VerifierError::InvalidBirthDayAndGenderRange(birth_day))
 }
 
-fn verify_birth_place_part(birth_place_part: &str) -> Result<()> {
+pub fn verify_birth_place_part(birth_place_part: &str) -> Result<()> {
     match birth_place_part.as_bytes() {
         &[a, b, c, d]
             if a.is_ascii_alphabetic()

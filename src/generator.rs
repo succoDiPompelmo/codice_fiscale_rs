@@ -7,7 +7,7 @@ use crate::{
     common::{alphabet, month_codes, vowels},
     control_code::ControlCode,
     omocodes::Omocodes,
-    Gender, PersonData,
+    person_data::{Gender, PersonData},
 };
 
 pub struct GeneratorOutcome {

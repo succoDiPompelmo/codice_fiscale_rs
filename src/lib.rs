@@ -1,30 +1,17 @@
 use std::fmt;
 
-use chrono::prelude::*;
+use errors::VerifierError;
 use generator::Generator;
-use thiserror::Error;
-use verifier::{Verifier, VerifierError};
+use person_data::PersonData;
+use verifier::Verifier;
 
 mod common;
 mod control_code;
+pub mod errors;
 mod generator;
 mod omocodes;
+pub mod person_data;
 mod verifier;
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PersonData {
-    pub name: String,
-    pub surname: String,
-    pub birthdate: NaiveDate,
-    pub gender: Gender,
-    pub place_of_birth: String,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Gender {
-    M,
-    F,
-}
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct CodiceFiscale {
@@ -38,16 +25,8 @@ impl fmt::Display for CodiceFiscale {
     }
 }
 
-type Result<T> = std::result::Result<T, CodiceFiscaleError>;
-
-#[derive(Error, Debug, PartialEq, Eq)]
-pub enum CodiceFiscaleError {
-    #[error(transparent)]
-    VerifyError(#[from] VerifierError),
-}
-
 impl CodiceFiscale {
-    pub fn verify(codice_fiscale: &str) -> Result<CodiceFiscale> {
+    pub fn verify(codice_fiscale: &str) -> Result<CodiceFiscale, VerifierError> {
         let verifier_outcome = Verifier::verify(codice_fiscale)?;
 
         Ok(CodiceFiscale {

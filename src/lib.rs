@@ -138,6 +138,12 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_display_trait() {
+        let codice_fiscale = CodiceFiscale { codice_fiscale: "PLTPPP23A47T567Q".to_string(), omocodes: vec![]};
+        assert_eq!(format!("{}", codice_fiscale), "PLTPPP23A47T567Q");
+    }
+
+    #[test]
     fn test_verify() {
         let codice_fiscale = CodiceFiscale::verify("PLTPPP23A47T567Q");
         assert!(codice_fiscale.is_ok());

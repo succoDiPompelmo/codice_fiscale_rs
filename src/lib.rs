@@ -90,15 +90,15 @@ impl CodiceFiscale {
     /// use chrono::{NaiveDate, Utc};
     ///
     /// let person_data = PersonData::new(
-    ///     "PIPPO".to_string(), 
-    ///     "PLUTO".to_string(), 
-    ///     Utc::now().date_naive(), 
-    ///     Gender::M, 
+    ///     "PIPPO".to_string(),
+    ///     "PLUTO".to_string(),
+    ///     Utc::now().date_naive(),
+    ///     Gender::M,
     ///     "B544".to_string());
     ///
     /// let codice_fiscale_outcome = CodiceFiscale::generate(&person_data);
     /// assert_eq!(codice_fiscale_outcome.get(), "PLTPPP23A07B544K".to_string());
-    /// 
+    ///
     /// let omocodes = codice_fiscale_outcome.omocodes();
     /// assert_eq!(omocodes.len(), 7);
     /// assert_eq!(omocodes.last(), Some(&"PLTPPPNPALTBRQQKX".to_string()));

@@ -9,6 +9,12 @@ license-file = "LICENSE"
 keywords = ["codice", "fiscale"]
 categories = ["algorithms"]
 
+exclude = [
+    "README.md",
+    "LICENSE",
+    ".github/*",
+]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

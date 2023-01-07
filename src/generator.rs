@@ -4,7 +4,7 @@ use chrono::prelude::*;
 use rand::distributions::{Distribution, Uniform};
 
 use crate::{
-    common::{alphabet, month_codes, vowels},
+    common::{is_vowel, to_alphabet, to_month_codes},
     control_code::ControlCode,
     omocodes::Omocodes,
     person_data::{Gender, PersonData},
@@ -39,14 +39,14 @@ impl Generator {
         let gender = Uniform::from(0..2);
 
         for _i in 0..6 {
-            codice_fiscale.push(alphabet()[alphabet_index.sample(&mut rng)])
+            codice_fiscale.push(to_alphabet(alphabet_index.sample(&mut rng)))
         }
 
         for _i in 0..2 {
             codice_fiscale.push(char::from_digit(digit.sample(&mut rng), 10).unwrap());
         }
 
-        codice_fiscale.push(month_codes()[month_codes_index.sample(&mut rng)]);
+        codice_fiscale.push(to_month_codes(month_codes_index.sample(&mut rng)));
         codice_fiscale.push(
             char::from_digit(
                 day_first_digit.sample(&mut rng) + 4 * gender.sample(&mut rng),
@@ -55,7 +55,7 @@ impl Generator {
             .unwrap(),
         );
         codice_fiscale.push(char::from_digit(day_second_digit.sample(&mut rng), 10).unwrap());
-        codice_fiscale.push(alphabet()[alphabet_index.sample(&mut rng)]);
+        codice_fiscale.push(to_alphabet(alphabet_index.sample(&mut rng)));
         for _i in 0..3 {
             codice_fiscale.push(char::from_digit(digit.sample(&mut rng), 10).unwrap());
         }
@@ -122,7 +122,7 @@ fn generate_name_or_surname_part(name_or_surname: String) -> Vec<char> {
 
     let mut name_consonants: Vec<char> = name_or_surname
         .chars()
-        .filter(|char| !vowels().contains(char))
+        .filter(|char| !is_vowel(char))
         .collect();
     result.append(&mut name_consonants);
 
@@ -130,10 +130,7 @@ fn generate_name_or_surname_part(name_or_surname: String) -> Vec<char> {
         return result[0..3].to_vec();
     }
 
-    let mut name_vowels: Vec<char> = name_or_surname
-        .chars()
-        .filter(|char| vowels().contains(char))
-        .collect();
+    let mut name_vowels: Vec<char> = name_or_surname.chars().filter(is_vowel).collect();
     result.append(&mut name_vowels);
 
     if result.len() >= 3 {
@@ -149,7 +146,7 @@ fn generate_name_or_surname_part(name_or_surname: String) -> Vec<char> {
 
 fn generate_birth_day_and_gender_parts(birthday: NaiveDate, gender: Gender) -> Vec<char> {
     let year_part: Vec<char> = birthday.year().to_string().chars().collect();
-    let month_part = month_codes()[(birthday.month() as usize) - 1];
+    let month_part = to_month_codes((birthday.month() as usize) - 1);
 
     let mut day: Vec<char> = if gender == Gender::F {
         (birthday.day() + 40).to_string().chars().collect()

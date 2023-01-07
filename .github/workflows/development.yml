@@ -1,17 +1,14 @@
-name: Rust
+name: Development
 
 on:
   push:
-    branches: [ "*" ]
-  pull_request:
     branches: [ "*" ]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-
-  test_codice_fiscale_rs:
+  development:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -36,7 +33,9 @@ jobs:
       - name: Test
         run: |
           cargo check
-          cargo test --all          
+          cargo test --all
+
+      - uses: actions/checkout@v2
 
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
@@ -53,8 +52,9 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: code-coverage-report
-          path: cobertura.xml
+          path: cobertura.xml  
 
       - name: Build
         run: |
-          cargo build --release 
+          cargo build --release
+       

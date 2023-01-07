@@ -1,6 +1,16 @@
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq, Eq)]
+pub enum PersonDataError {
+    #[error("The provided name contains non ascii alphabetic characters")]
+    InvalidName(),
+    #[error("The provided surname contains non ascii alphabetic characters")]
+    InvalidSurname(),
+    #[error("The provided birth place is not valid, it should be a valid belfiore code")]
+    InvalidBirthPlace(),
+}
+
+#[derive(Error, Debug, PartialEq, Eq)]
 pub enum VerifierError {
     #[error("The fiscal code length should be 16 instead is `{0}`")]
     InvalidLength(usize),

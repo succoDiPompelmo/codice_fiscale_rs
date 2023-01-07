@@ -9,7 +9,6 @@ impl Omocodes {
         let mut omocodes: Vec<Vec<char>> = vec![];
 
         for index in omocodes_letter_indices {
-            println!("{:?}", starting_codice_fiscale[index]);
             starting_codice_fiscale[index] =
                 inverse_map_omocodes(starting_codice_fiscale[index]).unwrap();
             omocodes.push(starting_codice_fiscale.to_vec())

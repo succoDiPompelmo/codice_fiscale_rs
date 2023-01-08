@@ -12,7 +12,7 @@
 
 Crate to manage Italian codice fiscale (tax code).
 
-It aims to be a feature complete crate to generate and verify Italian codici fiscali.
+It aims to be a feature complete crate to generate and verify Italian codici fiscali. 
 
 ## Limitations
 

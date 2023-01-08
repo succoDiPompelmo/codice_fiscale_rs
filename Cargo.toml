@@ -28,3 +28,7 @@ criterion = "0.4.0"
 [[bench]]
 name = "verify_benchmark"
 harness = false
+
+[[bench]]
+name = "generate_benchmark"
+harness = false

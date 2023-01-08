@@ -21,7 +21,7 @@ fn random_inputs(c: &mut Criterion) {
     group.finish();
 }
 
-fn single_input(c: &mut Criterion) {
+fn single_input_verifier(c: &mut Criterion) {
     let codice_fiscale = "cTMTBT74E05B506W";
 
     c.bench_with_input(
@@ -33,5 +33,5 @@ fn single_input(c: &mut Criterion) {
     );
 }
 
-criterion_group!(benches, random_inputs, single_input);
+criterion_group!(benches, random_inputs, single_input_verifier);
 criterion_main!(benches);

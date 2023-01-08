@@ -1,3 +1,5 @@
+use std::fmt;
+
 use chrono::NaiveDate;
 
 use crate::{
@@ -16,10 +18,32 @@ pub struct PersonData {
     place_of_birth: String,
 }
 
+impl fmt::Display for PersonData {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "NAME: {}| SURNAME: {}, GENDER: {}, BIRTHDAY: {}",
+            self.name(),
+            self.surname(),
+            self.gender(),
+            self.birthdate()
+        )
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Gender {
     M,
     F,
+}
+
+impl fmt::Display for Gender {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Gender::F => write!(f, "F"),
+            Gender::M => write!(f, "M"),
+        }
+    }
 }
 
 impl PersonData {
@@ -77,6 +101,24 @@ mod tests {
     use chrono::Utc;
 
     use super::*;
+
+    #[test]
+    fn person_data_display() {
+        let naive_now = Utc::now().date_naive();
+        let person_data = PersonData::new(
+            "PIPPO".to_string(),
+            "PLUTO".to_string(),
+            naive_now,
+            Gender::F,
+            "T567".to_string(),
+        )
+        .unwrap();
+
+        assert_eq!(
+            format!("{}", person_data),
+            "NAME: PIPPO| SURNAME: PLUTO, GENDER: F, BIRTHDAY: 2023-01-08"
+        );
+    }
 
     #[test]
     fn person_data_new() {

@@ -1,7 +1,11 @@
 use std::vec;
 
 use chrono::prelude::*;
-use rand::distributions::{Distribution, Uniform};
+use rand::{
+    distributions::{Distribution, Uniform},
+    rngs::StdRng,
+    SeedableRng,
+};
 
 use crate::{
     common::{is_vowel, to_alphabet, to_month_codes},
@@ -27,10 +31,10 @@ impl Generator {
         }
     }
 
-    pub fn generate_random() -> GeneratorOutcome {
+    pub fn generate_random(seed: Option<u64>) -> GeneratorOutcome {
         let mut codice_fiscale = vec![];
+        let mut rng = seed.map_or(StdRng::from_entropy(), StdRng::seed_from_u64);
 
-        let mut rng = rand::thread_rng();
         let alphabet_index = Uniform::from(1..26);
         let digit = Uniform::from(0..10);
         let month_codes_index = Uniform::from(0..12);
@@ -65,9 +69,10 @@ impl Generator {
 
         codice_fiscale.push(control_code);
         let codice_fiscale: String = codice_fiscale.iter().collect();
+        let omocodes = generate_omocodes(&codice_fiscale);
         GeneratorOutcome {
             codice_fiscale,
-            omocodes: vec![],
+            omocodes,
         }
     }
 }
@@ -170,7 +175,7 @@ mod tests {
     #[test]
     fn generate_valid_random_codice_fiscale() {
         for _i in 0..10_000 {
-            let codice_fiscale = Generator::generate_random();
+            let codice_fiscale = Generator::generate_random(None);
             assert!(Verifier::verify(&codice_fiscale.get()).is_ok())
         }
     }

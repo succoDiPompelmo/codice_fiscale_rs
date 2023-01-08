@@ -112,11 +112,11 @@ impl CodiceFiscale {
         }
     }
 
-    pub fn generate_random() -> CodiceFiscale {
-        let generator_outcome = Generator::generate_random();
+    pub fn generate_random(seed: Option<u64>) -> CodiceFiscale {
+        let generator_outcome = Generator::generate_random(seed);
         CodiceFiscale {
             codice_fiscale: generator_outcome.get(),
-            omocodes: vec![],
+            omocodes: generator_outcome.omocodes(),
         }
     }
 
@@ -167,5 +167,12 @@ mod tests {
         let codice_fiscale = CodiceFiscale::generate(&person_data);
 
         assert_eq!(codice_fiscale.get(), "PLTPPP22R42T567K".to_string());
+    }
+
+    #[test]
+    fn test_random_generator() {
+        let codice_fiscale = CodiceFiscale::generate_random(Some(19));
+        assert_eq!(codice_fiscale.get(), "ZLKESP25B55Y463L");
+        assert!(CodiceFiscale::verify(&codice_fiscale.get()).is_ok());
     }
 }

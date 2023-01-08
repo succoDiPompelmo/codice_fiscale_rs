@@ -5,7 +5,7 @@ use codice_fiscale_rs::CodiceFiscale;
 fn random_inputs(c: &mut Criterion) {
     let mut random_inputs = vec![];
     for _i in 0..3 {
-        random_inputs.push(CodiceFiscale::generate_random())
+        random_inputs.push(CodiceFiscale::generate_random(None))
     }
 
     let mut group = c.benchmark_group("verify_random_inputs");

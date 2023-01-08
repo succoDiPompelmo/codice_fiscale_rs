@@ -5,7 +5,7 @@ use codice_fiscale_rs::CodiceFiscale;
 fn random_inputs(c: &mut Criterion) {
     let mut random_inputs = vec![];
     for _i in 0..3 {
-        random_inputs.push(CodiceFiscale::generate_random())
+        random_inputs.push(CodiceFiscale::generate_random(None))
     }
 
     let mut group = c.benchmark_group("verify_random_inputs");
@@ -21,7 +21,7 @@ fn random_inputs(c: &mut Criterion) {
     group.finish();
 }
 
-fn single_input(c: &mut Criterion) {
+fn single_input_verifier(c: &mut Criterion) {
     let codice_fiscale = "cTMTBT74E05B506W";
 
     c.bench_with_input(
@@ -33,5 +33,5 @@ fn single_input(c: &mut Criterion) {
     );
 }
 
-criterion_group!(benches, random_inputs, single_input);
+criterion_group!(benches, random_inputs, single_input_verifier);
 criterion_main!(benches);

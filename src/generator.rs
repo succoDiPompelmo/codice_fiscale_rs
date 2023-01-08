@@ -1,7 +1,11 @@
 use std::vec;
 
 use chrono::prelude::*;
-use rand::distributions::{Distribution, Uniform};
+use rand::{
+    distributions::{Distribution, Uniform},
+    rngs::StdRng,
+    SeedableRng,
+};
 
 use crate::{
     common::{is_vowel, to_alphabet, to_month_codes},
@@ -27,10 +31,10 @@ impl Generator {
         }
     }
 
-    pub fn generate_random() -> GeneratorOutcome {
+    pub fn generate_random(seed: Option<u64>) -> GeneratorOutcome {
         let mut codice_fiscale = vec![];
+        let mut rng = seed.map_or(StdRng::from_entropy(), StdRng::seed_from_u64);
 
-        let mut rng = rand::thread_rng();
         let alphabet_index = Uniform::from(1..26);
         let digit = Uniform::from(0..10);
         let month_codes_index = Uniform::from(0..12);
@@ -65,9 +69,10 @@ impl Generator {
 
         codice_fiscale.push(control_code);
         let codice_fiscale: String = codice_fiscale.iter().collect();
+        let omocodes = generate_omocodes(&codice_fiscale);
         GeneratorOutcome {
             codice_fiscale,
-            omocodes: vec![],
+            omocodes,
         }
     }
 }
@@ -96,16 +101,16 @@ fn generate_omocodes(starting_codice_fiscale: &str) -> Vec<String> {
 }
 
 fn generate_codice_fiscale(person_data: &PersonData) -> String {
-    let surname_part = generate_name_or_surname_part(person_data.surname.to_owned());
-    let name_part = generate_name_or_surname_part(person_data.name.to_owned());
+    let surname_part = generate_name_or_surname_part(person_data.surname());
+    let name_part = generate_name_or_surname_part(person_data.name());
     let birth_day_and_gender_parts =
-        generate_birth_day_and_gender_parts(person_data.birthdate, person_data.gender);
+        generate_birth_day_and_gender_parts(person_data.birthdate(), person_data.gender());
 
     let mut codice_fiscale: String = [
         surname_part,
         name_part,
         birth_day_and_gender_parts,
-        person_data.place_of_birth.chars().collect(),
+        person_data.birth_place().chars().collect(),
     ]
     .concat()
     .iter()
@@ -170,20 +175,21 @@ mod tests {
     #[test]
     fn generate_valid_random_codice_fiscale() {
         for _i in 0..10_000 {
-            let codice_fiscale = Generator::generate_random();
+            let codice_fiscale = Generator::generate_random(None);
             assert!(Verifier::verify(&codice_fiscale.get()).is_ok())
         }
     }
 
     #[test]
     fn generate_valid_codice_fiscale_from_person_data() {
-        let person_data = PersonData {
-            name: "PI".to_string(),
-            surname: "SUCCHIO".to_string(),
-            birthdate: NaiveDate::from_ymd_opt(1998, 7, 8).unwrap(),
-            gender: Gender::F,
-            place_of_birth: "M256".to_string(),
-        };
+        let person_data = PersonData::new(
+            "PI".to_string(),
+            "SUCCHIO".to_string(),
+            NaiveDate::from_ymd_opt(1998, 7, 8).unwrap(),
+            Gender::F,
+            "M256".to_string(),
+        )
+        .unwrap();
         let codice_fiscale = Generator::generate(&person_data);
 
         assert_eq!(codice_fiscale.get(), "SCCPIX98L48M256N");

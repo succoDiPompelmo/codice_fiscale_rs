@@ -1,6 +1,4 @@
-use std::{fmt, str::FromStr};
-
-use thiserror::Error;
+use std::str::FromStr;
 
 use crate::{
     common::is_month_code, control_code::ControlCode, errors::VerifierError, omocodes::Omocodes,
@@ -10,19 +8,8 @@ type Result<T> = std::result::Result<T, VerifierError>;
 
 pub struct Verifier {}
 
-#[derive(Error, Debug, PartialEq, Eq)]
-pub struct VerifierOutcome {
-    codice_fiscale: String,
-}
-
-impl fmt::Display for VerifierOutcome {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.get())
-    }
-}
-
 impl Verifier {
-    pub fn verify(codice_fiscale: &str) -> Result<VerifierOutcome> {
+    pub fn verify(codice_fiscale: &str) -> Result<()> {
         if codice_fiscale.len() != 16 {
             return Err(VerifierError::InvalidLength(codice_fiscale.len()));
         }
@@ -40,15 +27,7 @@ impl Verifier {
 
         verify_control_code(codice_fiscale)?;
 
-        Ok(VerifierOutcome {
-            codice_fiscale: codice_fiscale.to_string(),
-        })
-    }
-}
-
-impl VerifierOutcome {
-    pub fn get(&self) -> String {
-        self.codice_fiscale.to_string()
+        Ok(())
     }
 }
 
@@ -153,12 +132,7 @@ mod tests {
 
     #[test]
     fn valid_codice_fiscale_omocodo() {
-        assert_eq!(
-            Verifier::verify("BRNPRZ72D52F83VC"),
-            Ok(VerifierOutcome {
-                codice_fiscale: "BRNPRZ72D52F83VC".to_string()
-            })
-        )
+        assert_eq!(Verifier::verify("BRNPRZ72D52F83VC"), Ok(()))
     }
 
     #[test]

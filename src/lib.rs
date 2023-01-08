@@ -57,24 +57,19 @@ impl CodiceFiscale {
     /// use codice_fiscale_rs::CodiceFiscale;
     /// use codice_fiscale_rs::errors::VerifierError;
     ///
-    /// let codice_fiscale_outcome = CodiceFiscale::verify("BLTMHL77S04");
-    /// assert_eq!(codice_fiscale_outcome, Err(VerifierError::InvalidLength(11)));
+    /// let outcome = CodiceFiscale::verify("BLTMHL77S04");
+    /// assert_eq!(outcome, Err(VerifierError::InvalidLength(11)));
     /// ```
     ///
     /// ```
     /// use codice_fiscale_rs::CodiceFiscale;
     /// use codice_fiscale_rs::errors::VerifierError;
     ///
-    /// let codice_fiscale_outcome = CodiceFiscale::verify("BLTMHL77S04E889T");
-    /// assert_eq!(codice_fiscale_outcome, Err(VerifierError::InvalidControlCharacter('T', 'G')));
+    /// let outcome = CodiceFiscale::verify("BLTMHL77S04E889T");
+    /// assert_eq!(outcome, Err(VerifierError::InvalidControlCharacter('T', 'G')));
     /// ```
-    pub fn verify(codice_fiscale: &str) -> Result<CodiceFiscale, VerifierError> {
-        let verifier_outcome = Verifier::verify(codice_fiscale)?;
-
-        Ok(CodiceFiscale {
-            codice_fiscale: verifier_outcome.get(),
-            omocodes: vec![],
-        })
+    pub fn verify(codice_fiscale: &str) -> Result<(), VerifierError> {
+        Verifier::verify(codice_fiscale)
     }
 
     /// **Static** method returns a CodiceFiscale struct from the personal data that
@@ -92,7 +87,7 @@ impl CodiceFiscale {
     /// let person_data = PersonData::new(
     ///     "PIPPO".to_string(),
     ///     "PLUTO".to_string(),
-    ///     Utc::now().date_naive(),
+    ///     NaiveDate::from_ymd_opt(2023, 1, 7).unwrap(),
     ///     Gender::M,
     ///     "B544".to_string()).unwrap();
     ///
@@ -112,11 +107,11 @@ impl CodiceFiscale {
         }
     }
 
-    pub fn generate_random() -> CodiceFiscale {
-        let generator_outcome = Generator::generate_random();
+    pub fn generate_random(seed: Option<u64>) -> CodiceFiscale {
+        let generator_outcome = Generator::generate_random(seed);
         CodiceFiscale {
             codice_fiscale: generator_outcome.get(),
-            omocodes: vec![],
+            omocodes: generator_outcome.omocodes(),
         }
     }
 
@@ -131,7 +126,7 @@ impl CodiceFiscale {
 
 #[cfg(test)]
 mod tests {
-    use chrono::Utc;
+    use chrono::NaiveDate;
 
     use crate::person_data::Gender;
 
@@ -154,7 +149,7 @@ mod tests {
 
     #[test]
     fn test_generate() {
-        let naive_now = Utc::now().date_naive();
+        let naive_now = NaiveDate::from_ymd_opt(2022, 10, 2).unwrap();
         let person_data = PersonData::new(
             "PIPPO".to_string(),
             "PLUTO".to_string(),
@@ -166,6 +161,13 @@ mod tests {
 
         let codice_fiscale = CodiceFiscale::generate(&person_data);
 
-        assert_eq!(codice_fiscale.get(), "PLTPPP23A47T567Q".to_string());
+        assert_eq!(codice_fiscale.get(), "PLTPPP22R42T567K".to_string());
+    }
+
+    #[test]
+    fn test_random_generator() {
+        let codice_fiscale = CodiceFiscale::generate_random(Some(19));
+        assert_eq!(codice_fiscale.get(), "ZLKESP25B55Y463L");
+        assert!(CodiceFiscale::verify(&codice_fiscale.get()).is_ok());
     }
 }

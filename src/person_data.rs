@@ -9,11 +9,11 @@ type Result<T> = std::result::Result<T, PersonDataError>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PersonData {
-    pub name: String,
-    pub surname: String,
-    pub birthdate: NaiveDate,
-    pub gender: Gender,
-    pub place_of_birth: String,
+    name: String,
+    surname: String,
+    birthdate: NaiveDate,
+    gender: Gender,
+    place_of_birth: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -49,6 +49,26 @@ impl PersonData {
             gender,
             place_of_birth,
         })
+    }
+
+    pub fn name(&self) -> String {
+        self.name.to_string()
+    }
+
+    pub fn surname(&self) -> String {
+        self.surname.to_string()
+    }
+
+    pub fn gender(&self) -> Gender {
+        self.gender
+    }
+
+    pub fn birthdate(&self) -> NaiveDate {
+        self.birthdate
+    }
+
+    pub fn birth_place(&self) -> String {
+        self.place_of_birth.to_string()
     }
 }
 

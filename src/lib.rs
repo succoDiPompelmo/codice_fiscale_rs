@@ -57,24 +57,19 @@ impl CodiceFiscale {
     /// use codice_fiscale_rs::CodiceFiscale;
     /// use codice_fiscale_rs::errors::VerifierError;
     ///
-    /// let codice_fiscale_outcome = CodiceFiscale::verify("BLTMHL77S04");
-    /// assert_eq!(codice_fiscale_outcome, Err(VerifierError::InvalidLength(11)));
+    /// let outcome = CodiceFiscale::verify("BLTMHL77S04");
+    /// assert_eq!(outcome, Err(VerifierError::InvalidLength(11)));
     /// ```
     ///
     /// ```
     /// use codice_fiscale_rs::CodiceFiscale;
     /// use codice_fiscale_rs::errors::VerifierError;
     ///
-    /// let codice_fiscale_outcome = CodiceFiscale::verify("BLTMHL77S04E889T");
-    /// assert_eq!(codice_fiscale_outcome, Err(VerifierError::InvalidControlCharacter('T', 'G')));
+    /// let outcome = CodiceFiscale::verify("BLTMHL77S04E889T");
+    /// assert_eq!(outcome, Err(VerifierError::InvalidControlCharacter('T', 'G')));
     /// ```
-    pub fn verify(codice_fiscale: &str) -> Result<CodiceFiscale, VerifierError> {
-        let verifier_outcome = Verifier::verify(codice_fiscale)?;
-
-        Ok(CodiceFiscale {
-            codice_fiscale: verifier_outcome.get(),
-            omocodes: vec![],
-        })
+    pub fn verify(codice_fiscale: &str) -> Result<(), VerifierError> {
+        Verifier::verify(codice_fiscale)
     }
 
     /// **Static** method returns a CodiceFiscale struct from the personal data that

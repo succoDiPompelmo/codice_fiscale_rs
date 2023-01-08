@@ -3,7 +3,10 @@
 ![gitHub actions](https://github.com/succoDiPompelmo/codice_fiscale_rs/actions/workflows/development.yml/badge.svg)
 [![codecov](https://codecov.io/gh/succoDiPompelmo/codice_fiscale_rs/branch/main/graph/badge.svg?token=IZCXZOETUS)](https://codecov.io/gh/succoDiPompelmo/codice_fiscale_rs)
 [![crates.io][cratesio-image]][cratesio]
+[![docs.rs][docsrs-image]][docsrs]
 
+[docsrs-image]: https://docs.rs/codice_fiscale_rs/badge.svg
+[docsrs]: https://docs.rs/codice_fiscale_rs
 [cratesio-image]: https://img.shields.io/crates/v/codice_fiscale_rs.svg
 [cratesio]: https://crates.io/crates/codice_fiscale_rs
 

@@ -92,7 +92,7 @@ impl CodiceFiscale {
     /// let person_data = PersonData::new(
     ///     "PIPPO".to_string(),
     ///     "PLUTO".to_string(),
-    ///     Utc::now().date_naive(),
+    ///     NaiveDate::from_ymd_opt(2023, 1, 7).unwrap(),
     ///     Gender::M,
     ///     "B544".to_string()).unwrap();
     ///
@@ -131,7 +131,7 @@ impl CodiceFiscale {
 
 #[cfg(test)]
 mod tests {
-    use chrono::Utc;
+    use chrono::NaiveDate;
 
     use crate::person_data::Gender;
 
@@ -154,7 +154,7 @@ mod tests {
 
     #[test]
     fn test_generate() {
-        let naive_now = Utc::now().date_naive();
+        let naive_now = NaiveDate::from_ymd_opt(2022, 10, 2).unwrap();
         let person_data = PersonData::new(
             "PIPPO".to_string(),
             "PLUTO".to_string(),
@@ -166,6 +166,6 @@ mod tests {
 
         let codice_fiscale = CodiceFiscale::generate(&person_data);
 
-        assert_eq!(codice_fiscale.get(), "PLTPPP23A47T567Q".to_string());
+        assert_eq!(codice_fiscale.get(), "PLTPPP22R42T567K".to_string());
     }
 }

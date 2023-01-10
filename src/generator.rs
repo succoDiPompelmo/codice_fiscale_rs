@@ -14,24 +14,28 @@ use crate::{
     person_data::{Gender, PersonData},
 };
 
-pub struct GeneratorOutcome {
-    codice_fiscale: String,
-    omocodes: Vec<String>,
-}
-
 pub struct Generator {}
 
 impl Generator {
-    pub fn generate(person_data: &PersonData) -> GeneratorOutcome {
-        let codice_fiscale = generate_codice_fiscale(person_data);
-        let omocodes = generate_omocodes(&codice_fiscale);
-        GeneratorOutcome {
-            codice_fiscale,
-            omocodes,
-        }
+    pub fn generate(person_data: &PersonData) -> String {
+        generate_codice_fiscale(person_data)
     }
 
-    pub fn generate_random(seed: Option<u64>) -> GeneratorOutcome {
+    #[allow(dead_code)]
+    pub fn generate_omocodes(starting_codice_fiscale: &str) -> Vec<String> {
+        let mut omocodes = Omocodes::generate(starting_codice_fiscale.chars());
+
+        omocodes
+            .iter_mut()
+            .map(|omocode| {
+                let control_code = ControlCode::compute(&omocode.iter().collect::<String>());
+                omocode.push(control_code);
+                omocode.iter().collect::<String>()
+            })
+            .collect::<Vec<String>>()
+    }
+
+    pub fn generate_random(seed: Option<u64>) -> String {
         let mut codice_fiscale = vec![];
         let mut rng = seed.map_or(StdRng::from_entropy(), StdRng::seed_from_u64);
 
@@ -68,36 +72,8 @@ impl Generator {
         let control_code = ControlCode::compute(&value);
 
         codice_fiscale.push(control_code);
-        let codice_fiscale: String = codice_fiscale.iter().collect();
-        let omocodes = generate_omocodes(&codice_fiscale);
-        GeneratorOutcome {
-            codice_fiscale,
-            omocodes,
-        }
+        codice_fiscale.iter().collect()
     }
-}
-
-impl GeneratorOutcome {
-    pub fn get(&self) -> String {
-        self.codice_fiscale.to_string()
-    }
-
-    pub fn omocodes(&self) -> Vec<String> {
-        self.omocodes.to_vec()
-    }
-}
-
-fn generate_omocodes(starting_codice_fiscale: &str) -> Vec<String> {
-    let mut omocodes = Omocodes::generate(starting_codice_fiscale.chars());
-
-    omocodes
-        .iter_mut()
-        .map(|omocode| {
-            let control_code = ControlCode::compute(&omocode.iter().collect::<String>());
-            omocode.push(control_code);
-            omocode.iter().collect::<String>()
-        })
-        .collect::<Vec<String>>()
 }
 
 fn generate_codice_fiscale(person_data: &PersonData) -> String {
@@ -168,7 +144,7 @@ fn generate_birth_day_and_gender_parts(birthday: NaiveDate, gender: Gender) -> V
 
 #[cfg(test)]
 mod tests {
-    use crate::verifier::Verifier;
+    use crate::CodiceFiscale;
 
     use super::*;
 
@@ -176,7 +152,7 @@ mod tests {
     fn generate_valid_random_codice_fiscale() {
         for _i in 0..10_000 {
             let codice_fiscale = Generator::generate_random(None);
-            assert!(Verifier::verify(&codice_fiscale.get()).is_ok())
+            assert!(CodiceFiscale::new(&codice_fiscale).is_ok());
         }
     }
 
@@ -192,7 +168,7 @@ mod tests {
         .unwrap();
         let codice_fiscale = Generator::generate(&person_data);
 
-        assert_eq!(codice_fiscale.get(), "SCCPIX98L48M256N");
-        assert!(Verifier::verify(&codice_fiscale.get()).is_ok());
+        assert_eq!(codice_fiscale, "SCCPIX98L48M256N");
+        assert!(CodiceFiscale::new(&codice_fiscale).is_ok());
     }
 }

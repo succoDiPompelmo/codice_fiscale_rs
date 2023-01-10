@@ -14,7 +14,7 @@ fn random_inputs(c: &mut Criterion) {
             BenchmarkId::from_parameter(codice_fiscale),
             codice_fiscale,
             |b, codice_fiscale| {
-                b.iter(|| CodiceFiscale::verify(&codice_fiscale.get()));
+                b.iter(|| codice_fiscale.verify());
             },
         );
     }
@@ -28,7 +28,7 @@ fn single_input_verifier(c: &mut Criterion) {
         BenchmarkId::new("verify", codice_fiscale),
         &codice_fiscale,
         |b, input| {
-            b.iter(|| CodiceFiscale::verify(input));
+            b.iter(|| CodiceFiscale::new(input));
         },
     );
 }

@@ -21,14 +21,18 @@ impl Generator {
         generate_codice_fiscale(person_data)
     }
 
-    #[allow(dead_code)]
     pub fn generate_omocodes(starting_codice_fiscale: &str) -> Vec<String> {
-        let mut omocodes = Omocodes::generate(starting_codice_fiscale.chars());
+        let mut omocodes = Omocodes::generate(
+            Omocodes::replace_omocodes_characters(starting_codice_fiscale).chars(),
+        );
 
         omocodes
             .iter_mut()
             .map(|omocode| {
                 let control_code = ControlCode::compute(&omocode.iter().collect::<String>());
+                if omocode.len() == 16 {
+                    omocode.pop();
+                }
                 omocode.push(control_code);
                 omocode.iter().collect::<String>()
             })

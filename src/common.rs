@@ -24,6 +24,10 @@ pub fn is_vowel(letter: &char) -> bool {
     VOWELS.contains(letter)
 }
 
+pub fn is_consonant(letter: &char) -> bool {
+    !VOWELS.contains(letter)
+}
+
 pub fn to_alphabet(index: usize) -> char {
     ALPHABET[index]
 }

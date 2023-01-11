@@ -71,5 +71,3 @@ fn inverse_map_omocodes(letter: char) -> Option<char> {
         _ => None,
     }
 }
-
-// omocodes SRRVCN90B1SK83VS - BRNPRZ72D52F83VC - SCKCKH79A01Z34PP

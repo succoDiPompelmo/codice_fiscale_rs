@@ -3,6 +3,7 @@ use std::str::Chars;
 pub struct Omocodes {}
 
 impl Omocodes {
+    #[allow(dead_code)]
     pub fn generate(codice_fiscale: Chars) -> Vec<Vec<char>> {
         let mut starting_codice_fiscale: Vec<char> = codice_fiscale.collect::<Vec<char>>().to_vec();
         let omocodes_letter_indices = [14, 13, 12, 10, 9, 7, 6];
@@ -70,5 +71,3 @@ fn inverse_map_omocodes(letter: char) -> Option<char> {
         _ => None,
     }
 }
-
-// omocodes SRRVCN90B1SK83VS - BRNPRZ72D52F83VC - SCKCKH79A01Z34PP

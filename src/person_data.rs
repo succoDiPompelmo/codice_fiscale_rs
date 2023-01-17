@@ -104,11 +104,11 @@ mod tests {
 
     #[test]
     fn person_data_display() {
-        let naive_now = Utc::now().date_naive();
+        let naive_date = NaiveDate::from_ymd_opt(2023, 01, 08).unwrap();
         let person_data = PersonData::new(
             "PIPPO".to_string(),
             "PLUTO".to_string(),
-            naive_now,
+            naive_date,
             Gender::F,
             "T567".to_string(),
         )

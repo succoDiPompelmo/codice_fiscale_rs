@@ -1,6 +1,6 @@
 # codice_fiscale_rs
 
-![gitHub actions](https://github.com/succoDiPompelmo/codice_fiscale_rs/actions/workflows/development.yml/badge.svg)
+![gitHub actions](https://github.com/succoDiPompelmo/codice_fiscale_rs/actions/workflows/ci.yml/badge.svg)
 [![codecov](https://codecov.io/gh/succoDiPompelmo/codice_fiscale_rs/branch/main/graph/badge.svg?token=IZCXZOETUS)](https://codecov.io/gh/succoDiPompelmo/codice_fiscale_rs)
 [![crates.io][cratesio-image]][cratesio]
 [![docs.rs][docsrs-image]][docsrs]

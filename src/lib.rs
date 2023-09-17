@@ -15,6 +15,7 @@ use std::fmt;
 
 use errors::VerifierError;
 use generator::Generator;
+use omocodes::Omocodes;
 use person_data::PersonData;
 use verifier::Verifier;
 
@@ -29,7 +30,6 @@ mod verifier;
 #[derive(Debug, PartialEq, Eq)]
 pub struct CodiceFiscale {
     codice_fiscale: String,
-    omocodes: Vec<String>,
 }
 
 impl fmt::Display for CodiceFiscale {
@@ -39,17 +39,18 @@ impl fmt::Display for CodiceFiscale {
 }
 
 impl CodiceFiscale {
-    /// **Static** method returns an Ok result with CodiceFiscale struct as body if codice fiscale is valid,
+    /// **Static** create a new CodiceFiscale struct with the provided string value.
+    /// Returns an Ok result with CodiceFiscale struct as body if codice fiscale is valid,
     /// otherwise returns an error of type VerifierError.
     /// It detects the presence of omocode characters and considers it valid if the mapping,
-    /// that you can find here <https://it.wikipedia.org/wiki/Omocodia>, is correct.
+    /// that you can find here <https://it.wikipedia.org/wiki/Omocodia> is satisfied.
     ///
     /// # Examples
     ///
     /// ```
     /// use codice_fiscale_rs::CodiceFiscale;
     ///
-    /// let codice_fiscale_outcome = CodiceFiscale::verify("BLTMHL77S04E889G");
+    /// let codice_fiscale_outcome = CodiceFiscale::new("BLTMHL77S04E889G");
     /// assert!(codice_fiscale_outcome.is_ok());
     /// ```
     ///
@@ -57,7 +58,7 @@ impl CodiceFiscale {
     /// use codice_fiscale_rs::CodiceFiscale;
     /// use codice_fiscale_rs::errors::VerifierError;
     ///
-    /// let outcome = CodiceFiscale::verify("BLTMHL77S04");
+    /// let outcome = CodiceFiscale::new("BLTMHL77S04");
     /// assert_eq!(outcome, Err(VerifierError::InvalidLength(11)));
     /// ```
     ///
@@ -65,11 +66,20 @@ impl CodiceFiscale {
     /// use codice_fiscale_rs::CodiceFiscale;
     /// use codice_fiscale_rs::errors::VerifierError;
     ///
-    /// let outcome = CodiceFiscale::verify("BLTMHL77S04E889T");
+    /// let outcome = CodiceFiscale::new("BLTMHL77S04E889T");
     /// assert_eq!(outcome, Err(VerifierError::InvalidControlCharacter('T', 'G')));
     /// ```
-    pub fn verify(codice_fiscale: &str) -> Result<(), VerifierError> {
-        Verifier::verify(codice_fiscale)
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the referenced fiscal code is not valid.
+    pub fn new(raw_codice_fiscale: &str) -> Result<CodiceFiscale, VerifierError> {
+        let codice_fiscale = CodiceFiscale {
+            codice_fiscale: raw_codice_fiscale.to_string(),
+        };
+
+        Verifier::verify(&codice_fiscale.get())?;
+        Ok(codice_fiscale)
     }
 
     /// **Static** method returns a CodiceFiscale struct from the personal data that
@@ -93,34 +103,33 @@ impl CodiceFiscale {
     ///
     /// let codice_fiscale_outcome = CodiceFiscale::generate(&person_data);
     /// assert_eq!(codice_fiscale_outcome.get(), "PLTPPP23A07B544K".to_string());
-    ///
-    /// let omocodes = codice_fiscale_outcome.omocodes();
-    /// assert_eq!(omocodes.len(), 7);
-    /// assert_eq!(omocodes.last(), Some(&"PLTPPPNPALTBRQQKX".to_string()));
     /// ```
     pub fn generate(person_data: &PersonData) -> CodiceFiscale {
-        let generator_outcome = Generator::generate(person_data);
-
-        CodiceFiscale {
-            codice_fiscale: generator_outcome.get(),
-            omocodes: generator_outcome.omocodes(),
-        }
+        let codice_fiscale = Generator::generate(person_data);
+        CodiceFiscale { codice_fiscale }
     }
 
+    /// Generate a random fiscal code. It's possible to provide a seed
+    /// as an argument to generate predictable sequence of codici fiscali.
     pub fn generate_random(seed: Option<u64>) -> CodiceFiscale {
-        let generator_outcome = Generator::generate_random(seed);
-        CodiceFiscale {
-            codice_fiscale: generator_outcome.get(),
-            omocodes: generator_outcome.omocodes(),
-        }
+        let codice_fiscale = Generator::generate_random(seed);
+        CodiceFiscale { codice_fiscale }
+    }
+
+    pub fn is_omocode(&self) -> bool {
+        self.get() != Omocodes::replace_omocodes_characters(&self.get())
+    }
+
+    pub fn omocodes(&self) -> Vec<CodiceFiscale> {
+        let omocodes = Generator::generate_omocodes(&self.get());
+        omocodes
+            .iter()
+            .map(|cf| CodiceFiscale::new(cf).unwrap())
+            .collect()
     }
 
     pub fn get(&self) -> String {
         self.codice_fiscale.to_string()
-    }
-
-    pub fn omocodes(&self) -> Vec<String> {
-        self.omocodes.to_vec()
     }
 }
 
@@ -136,15 +145,13 @@ mod tests {
     fn test_display_trait() {
         let codice_fiscale = CodiceFiscale {
             codice_fiscale: "PLTPPP23A47T567Q".to_string(),
-            omocodes: vec![],
         };
         assert_eq!(format!("{}", codice_fiscale), "PLTPPP23A47T567Q");
     }
 
     #[test]
     fn test_verify() {
-        let codice_fiscale = CodiceFiscale::verify("PLTPPP23A47T567Q");
-        assert!(codice_fiscale.is_ok());
+        assert!(CodiceFiscale::new("PLTPPP23A47T567Q").is_ok());
     }
 
     #[test]
@@ -168,6 +175,30 @@ mod tests {
     fn test_random_generator() {
         let codice_fiscale = CodiceFiscale::generate_random(Some(19));
         assert_eq!(codice_fiscale.get(), "ZLKESP25B55Y463L");
-        assert!(CodiceFiscale::verify(&codice_fiscale.get()).is_ok());
+        assert!(CodiceFiscale::new(&codice_fiscale.get()).is_ok());
+    }
+
+    #[test]
+    fn test_is_omocode_yes() {
+        assert!(CodiceFiscale::new("BRNPRZ72D52F83VC").unwrap().is_omocode());
+    }
+
+    #[test]
+    fn test_is_omocode_no() {
+        assert!(!CodiceFiscale::new("ZLKESP25B55Y463L").unwrap().is_omocode());
+    }
+
+    #[test]
+    fn omocodes_from_normal_cf() {
+        let omocodes = CodiceFiscale::new("ZLKESP25B55Y463L").unwrap().omocodes();
+        assert_eq!(omocodes.len(), 7);
+        assert_eq!(omocodes.first().unwrap().get(), "ZLKESP25B55Y46PH");
+    }
+
+    #[test]
+    fn omocodes_from_omocode_cf() {
+        let omocodes = CodiceFiscale::new("BRNPRZ72D52F83VC").unwrap().omocodes();
+        assert_eq!(omocodes.len(), 7);
+        assert_eq!(omocodes.first().unwrap().get(), "BRNPRZ72D52F83VC");
     }
 }

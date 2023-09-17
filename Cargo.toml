@@ -1,6 +1,6 @@
 [package]
 name = "codice_fiscale_rs"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 authors = ["Giovanni Zenari <zenari12@gmail.com>"]
 description = "Crate to compute and validate Italian Tax code (codice fiscale)"

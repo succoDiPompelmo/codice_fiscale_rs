@@ -31,6 +31,7 @@ impl Generator {
         ]
         .concat()
         .iter()
+        .map(|c| c.to_ascii_uppercase())
         .collect();
 
         codice_fiscale.push(ControlCode::compute(&codice_fiscale));
@@ -166,6 +167,70 @@ mod tests {
         let person_data = PersonData::new(
             "PI".to_string(),
             "SUCCHIO".to_string(),
+            NaiveDate::from_ymd_opt(1998, 7, 8).unwrap(),
+            Gender::M,
+            "M256".to_string(),
+        )
+        .unwrap();
+        let codice_fiscale = Generator::generate(&person_data);
+
+        assert_eq!(codice_fiscale, "SCCPIX98L08M256J");
+        assert!(CodiceFiscale::new(&codice_fiscale).is_ok());
+    }
+
+    #[test]
+    fn generate_valid_codice_fiscale_from_person_with_special_characters_in_name() {
+        let person_data = PersonData::new(
+            "^^ P ''' I £$%£&$(/".to_string(),
+            "SUCCHIO".to_string(),
+            NaiveDate::from_ymd_opt(1998, 7, 8).unwrap(),
+            Gender::M,
+            "M256".to_string(),
+        )
+        .unwrap();
+        let codice_fiscale = Generator::generate(&person_data);
+
+        assert_eq!(codice_fiscale, "SCCPIX98L08M256J");
+        assert!(CodiceFiscale::new(&codice_fiscale).is_ok());
+    }
+
+    #[test]
+    fn generate_valid_codice_fiscale_from_person_with_special_characters_in_surname() {
+        let person_data = PersonData::new(
+            "^^ P ''' I £$%£&$(/".to_string(),
+            "£$%&$ S /%$^?64 U C $£ C 6436$£IO&&&".to_string(),
+            NaiveDate::from_ymd_opt(1998, 7, 8).unwrap(),
+            Gender::M,
+            "M256".to_string(),
+        )
+        .unwrap();
+        let codice_fiscale = Generator::generate(&person_data);
+
+        assert_eq!(codice_fiscale, "SCCPIX98L08M256J");
+        assert!(CodiceFiscale::new(&codice_fiscale).is_ok());
+    }
+
+    #[test]
+    fn generate_valid_codice_fiscale_from_person_with_lowercase_characters_in_name() {
+        let person_data = PersonData::new(
+            "pi".to_string(),
+            "SUCCHIO".to_string(),
+            NaiveDate::from_ymd_opt(1998, 7, 8).unwrap(),
+            Gender::M,
+            "M256".to_string(),
+        )
+        .unwrap();
+        let codice_fiscale = Generator::generate(&person_data);
+
+        assert_eq!(codice_fiscale, "SCCPIX98L08M256J");
+        assert!(CodiceFiscale::new(&codice_fiscale).is_ok());
+    }
+
+    #[test]
+    fn generate_valid_codice_fiscale_from_person_with_lowercase_characters_in_surname() {
+        let person_data = PersonData::new(
+            "PI".to_string(),
+            "SUcCHIO".to_string(),
             NaiveDate::from_ymd_opt(1998, 7, 8).unwrap(),
             Gender::M,
             "M256".to_string(),

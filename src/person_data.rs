@@ -2,10 +2,7 @@ use std::fmt;
 
 use chrono::NaiveDate;
 
-use crate::{
-    errors::PersonDataError,
-    verifier::{verify_ascii_alphanumeric, verify_birth_place_part},
-};
+use crate::{errors::PersonDataError, verifier::verify_birth_place_part};
 
 type Result<T> = std::result::Result<T, PersonDataError>;
 
@@ -54,14 +51,6 @@ impl PersonData {
         gender: Gender,
         place_of_birth: String,
     ) -> Result<PersonData> {
-        if verify_ascii_alphanumeric(&name).is_err() {
-            return Err(PersonDataError::InvalidName());
-        }
-
-        if verify_ascii_alphanumeric(&surname).is_err() {
-            return Err(PersonDataError::InvalidSurname());
-        }
-
         if verify_birth_place_part(&place_of_birth).is_err() {
             return Err(PersonDataError::InvalidBirthPlace());
         }
@@ -144,7 +133,7 @@ mod tests {
     }
 
     #[test]
-    fn person_data_invalid_name() {
+    fn person_data_name_with_special_character() {
         let naive_now = Utc::now().date_naive();
         let person_data = PersonData::new(
             "PòPPO".to_string(),
@@ -154,11 +143,20 @@ mod tests {
             "T567".to_string(),
         );
 
-        assert_eq!(person_data, Err(PersonDataError::InvalidName()));
+        assert_eq!(
+            person_data,
+            Ok(PersonData {
+                name: "PòPPO".to_string(),
+                surname: "PLUTO".to_string(),
+                birthdate: naive_now,
+                gender: Gender::F,
+                place_of_birth: "T567".to_string()
+            })
+        );
     }
 
     #[test]
-    fn person_data_invalid_surname() {
+    fn person_data_surname_with_special_character() {
         let naive_now = Utc::now().date_naive();
         let person_data = PersonData::new(
             "PIPPO".to_string(),
@@ -168,7 +166,16 @@ mod tests {
             "T567".to_string(),
         );
 
-        assert_eq!(person_data, Err(PersonDataError::InvalidSurname()));
+        assert_eq!(
+            person_data,
+            Ok(PersonData {
+                name: "PIPPO".to_string(),
+                surname: "@LUTO".to_string(),
+                birthdate: naive_now,
+                gender: Gender::F,
+                place_of_birth: "T567".to_string()
+            })
+        );
     }
 
     #[test]
